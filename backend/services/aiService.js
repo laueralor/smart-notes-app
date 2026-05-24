@@ -1,28 +1,20 @@
 const { OpenAI } = require('openai');
 
-// Inicializamos el cliente de OpenAI configurado para Groq
 const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
-    baseURL: process.env.OPENAI_BASE_URL // Redirige a los servidores de Groq
+    baseURL: process.env.OPENAI_BASE_URL 
 });
 
-/**
- * Función de respaldo (Fallback) por si falla la conexión con la IA de Groq.
- * Extrae palabras clave de más de 4 caracteres del propio texto en español o inglés.
- */
+
 function generateFallbackTags(text) {
     if (!text || typeof text !== 'string') return [];
     const cleanText = text.toLowerCase().replace(/[^\w\sáéíóúñ]/g, '');
     const words = cleanText.split(/\s+/);
-    // Filtramos palabras significativas (más de 4 letras) y quitamos duplicados
     const candidates = words.filter(word => word.length > 4);
     const uniqueTags = [...new Set(candidates)];
-    return uniqueTags.slice(0, 3); // Devolvemos como máximo 3 etiquetas
+    return uniqueTags.slice(0, 3); 
 }
 
-/**
- * Característica de IA 1: Genera etiquetas automáticas usando Groq
- */
 async function generateTags(content) {
     try {
         console.log('--- ENVIANDO PETICIÓN DE TAGS A GROQ ---');
@@ -60,21 +52,16 @@ async function generateTags(content) {
     }
 }
 
-/**
- * Característica de IA 2: Genera vectores numéricos (embeddings) locales
- */
+
 async function generateEmbedding(text) {
     try {
         console.log('--- GENERANDO EMBEDDING LOCAL ---');
-        // Importación dinámica para evitar conflictos de CommonJS con ESM en Node.js
         const { pipeline } = await import('@xenova/transformers');
-        
-        // Cargamos el modelo de embeddings ligero de Hugging Face
+       
         const extractor = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
         
         const output = await extractor(text, { pooling: 'mean', normalize: true });
         
-        // Convertimos el tensor de salida a un array estándar de números
         return Array.from(output.data);
     } catch (error) {
         console.error('Error al generar embedding local:', error);

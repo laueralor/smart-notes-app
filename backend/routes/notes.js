@@ -3,10 +3,6 @@ const router = express.Router();
 const Note = require('../models/Note');
 const aiService = require('../services/aiService');
 
-/**
- * Función auxiliar para calcular el producto escalar (similitud de coseno)
- * entre dos vectores numéricos normalizados.
- */
 function calculateSimilarity(vecA, vecB) {
     if (!vecA || !vecB || vecA.length !== vecB.length) return 0;
     let dotProduct = 0;
@@ -16,8 +12,6 @@ function calculateSimilarity(vecA, vecB) {
     return dotProduct;
 }
 
-// 1. SEMANTIC SEARCH (GET /api/notes/search?q=...)
-// NOTA: Esta ruta DEBE ir antes de cualquier ruta con parámetros dinámicos como /:id
 router.get('/search', async (req, res) => {
     try {
         const query = req.query.q;
@@ -27,23 +21,18 @@ router.get('/search', async (req, res) => {
 
         console.log(`Buscando notas semánticamente para: "${query}"`);
 
-        // Generamos el embedding de la consulta del usuario
         const queryEmbedding = await aiService.generateEmbedding(query);
         if (queryEmbedding.length === 0) {
             return res.status(500).json({ message: 'No se pudo procesar la búsqueda por IA' });
         }
 
-        // Traemos todas las notas de la base de datos que tengan embeddings
         const notes = await Note.find({ embedding: { $exists: true, $not: { $size: 0 } } });
 
-        // Calculamos la similitud para cada nota en memoria
         const results = notes.map(note => {
             const similarity = calculateSimilarity(queryEmbedding, note.embedding);
             
-            // Convertimos el documento de Mongoose a objeto plano para poder modificarlo
             const noteObject = note.toObject();
             
-            // ELIMINAMOS el embedding del objeto final para no ensuciar la respuesta de la API
             delete noteObject.embedding;
             
             return {
@@ -52,10 +41,8 @@ router.get('/search', async (req, res) => {
             };
         });
 
-        // Ordenamos los resultados de mayor a menor similitud
         results.sort((a, b) => b.score - a.score);
 
-        // Devolvemos los resultados ordenados y limpios sin el vector gigante
         res.json(results);
     } catch (error) {
         console.error('Error en búsqueda semántica:', error);
@@ -63,7 +50,6 @@ router.get('/search', async (req, res) => {
     }
 });
 
-// 2. CREATE a note with Automatic AI Features (POST)
 router.post('/', async (req, res) => {
     try {
         const { title, content } = req.body;
@@ -91,10 +77,8 @@ router.post('/', async (req, res) => {
     }
 });
 
-// 3. READ all notes (GET)
 router.get('/', async (req, res) => {
     try {
-        // Excluimos los embeddings del listado general para no sobrecargar las transferencias de red
         const notes = await Note.find().select('-embedding').sort({ createdAt: -1 });
         res.json(notes);
     } catch (error) {
@@ -102,12 +86,10 @@ router.get('/', async (req, res) => {
     }
 });
 
-// 4. UPDATE a note (PUT)
 router.put('/:id', async (req, res) => {
     try {
         const { title, content } = req.body;
         
-        // Si el contenido cambia, es buena idea actualizar también las etiquetas y los embeddings
         const automaticTags = await aiService.generateTags(content);
         const vectorEmbedding = await aiService.generateEmbedding(content);
 
@@ -128,7 +110,6 @@ router.put('/:id', async (req, res) => {
     }
 });
 
-// 5. DELETE a note (DELETE)
 router.delete('/:id', async (req, res) => {
     try {
         const deletedNote = await Note.findByIdAndDelete(req.params.id);
