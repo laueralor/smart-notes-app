@@ -1,4 +1,6 @@
-const API_URL = 'http://localhost:5000/api/notes';
+const API_BASE_URL = 'http://localhost:5000/api';
+const NOTES_URL = `${API_BASE_URL}/notes`
+const AUTH_URL = `${API_BASE_URL}/auth`
 
 const getAuthHeaders = () => {
     const token = localStorage.getItem('token');
@@ -9,7 +11,7 @@ const getAuthHeaders = () => {
 };
 
 export const loginUser = async (email, password) => {
-    const response = await fetch(`${API_URL}/auth/login`, {
+    const response = await fetch(`${AUTH_URL}/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
@@ -22,7 +24,7 @@ export const loginUser = async (email, password) => {
 };
 
 export const registerUser = async (email, password) => {
-    const response = await fetch(`${API_URL}/auth/register`, {
+    const response = await fetch(`${AUTH_URL}/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
@@ -35,7 +37,7 @@ export const registerUser = async (email, password) => {
 };
 
 export const fetchNotes = async () => {
-    const response = await fetch(`${API_URL}/notes`, {
+    const response = await fetch(`${NOTES_URL}`, {
         headers: getAuthHeaders()
     });
     if (!response.ok) throw new Error('Error al obtener las notas');
@@ -43,7 +45,7 @@ export const fetchNotes = async () => {
 };
 
 export const createNote = async (noteData) => {
-    const response = await fetch(`${API_URL}/notes`, {
+    const response = await fetch(`${NOTES_URL}`, {
         method: 'POST',
         headers: getAuthHeaders(),
         body: JSON.stringify(noteData),
@@ -53,7 +55,7 @@ export const createNote = async (noteData) => {
 };
 
 export const searchNotes = async (query) => {
-    const response = await fetch(`${API_URL}/notes/search?q=${encodeURIComponent(query)}`, {
+    const response = await fetch(`${NOTES_URL}/search?q=${encodeURIComponent(query)}`, {
         headers: getAuthHeaders()
     });
     if (!response.ok) throw new Error('Error en la búsqueda semántica');
@@ -61,7 +63,7 @@ export const searchNotes = async (query) => {
 };
 
 export const deleteNote = async (id) => {
-    const response = await fetch(`${API_URL}/notes/${id}`, {
+    const response = await fetch(`${NOTES_URL}/${id}`, {
         method: 'DELETE',
         headers: getAuthHeaders()
     });

@@ -61,7 +61,7 @@ async function generateEmbedding(text) {
         const extractor = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
         
         const output = await extractor(text, { pooling: 'mean', normalize: true });
-        
+        5
         return Array.from(output.data);
     } catch (error) {
         console.error('Error al generar embedding local:', error);
