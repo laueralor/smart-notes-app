@@ -1,16 +1,23 @@
 import { useState, useEffect } from 'react';
-import { fetchNotes, createNote, searchNotes, deleteNote } from './services/api';
+import { fetchNotes, createNote, searchNotes, deleteNote, loginUser, registerUser } from './services/api';
 import './App.css';
 
 function App() {
+    const [token, setToken] = useState(localStorage.getItem('token'));
     const [notes, setNotes] = useState([]);
     const [searchQuery, setSearchQuery] = useState('');
     const [newNote, setNewNote] = useState({ title: '', content: '' });
     const [isProcessing, setIsProcessing] = useState(false);
+    
+    const [isRegisterMode, setIsRegisterMode] = useState(false);
+    const [authForm, setAuthForm] = useState({ email: '', password: '' });
+    const [authError, setAuthError] = useState('');
 
     useEffect(() => {
-        loadAllNotes();
-    }, []);
+        if (token) {
+            loadAllNotes();
+        }
+    }, [token]);
 
     const loadAllNotes = async () => {
         try {
@@ -18,7 +25,35 @@ function App() {
             setNotes(data);
         } catch (error) {
             console.error("Error cargando notas:", error);
+            if (error.message.includes('401')) handleLogout();
         }
+    };
+
+    const handleAuthSubmit = async (e) => {
+        e.preventDefault();
+        setAuthError('');
+        setIsProcessing(true);
+        try {
+            let data;
+            if (isRegisterMode) {
+                data = await registerUser(authForm.email, authForm.password);
+            } else {
+                data = await loginUser(authForm.email, authForm.password);
+            }
+            localStorage.setItem('token', data.token);
+            setToken(data.token);
+            setAuthForm({ email: '', password: '' });
+        } catch (error) {
+            setAuthError(error.message);
+        } finally {
+            setIsProcessing(false);
+        }
+    };
+
+    const handleLogout = () => {
+        localStorage.removeItem('token');
+        setToken(null);
+        setNotes([]);
     };
 
     const handleCreateSubmit = async (event) => {
@@ -61,9 +96,52 @@ function App() {
         }
     };
 
+    if (!token) {
+        return (
+            <div className="container auth-container">
+                <h1>Smart Notes</h1>
+                <div className="controls-section">
+                    <h2>{isRegisterMode ? 'Crear Cuenta' : 'Iniciar Sesión'}</h2>
+                    {authError && <p className="error-message">ERROR {authError}</p>}
+                    
+                    <form onSubmit={handleAuthSubmit} className="create-form">
+                        <input
+                            type="email"
+                            placeholder="Tu correo electrónico..."
+                            value={authForm.email}
+                            onChange={(e) => setAuthForm({...authForm, email: e.target.value})}
+                            required
+                        />
+                        <input
+                            type="password"
+                            placeholder="Contraseña..."
+                            value={authForm.password}
+                            onChange={(e) => setAuthForm({...authForm, password: e.target.value})}
+                            required
+                        />
+                        <button type="submit" disabled={isProcessing}>
+                            {isProcessing ? 'Verificando...' : isRegisterMode ? 'Registrarse' : 'Entrar'}
+                        </button>
+                    </form>
+                    
+                    <button
+                        onClick={() => { setIsRegisterMode(!isRegisterMode); setAuthError(''); }}
+                        className="delete-btn"
+                        style={{ marginTop: '1rem', width: '100%' }}
+                    >
+                        {isRegisterMode ? '¿Ya tienes cuenta? Inicia sesión' : '¿No tienes cuenta? Regístrate'}
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="container">
-            <h1>Smart Notes Application</h1>
+            <header className="app-header">
+                <h1>Smart Notes Application</h1>
+                <button onClick={handleLogout} className="delete-btn">Cerrar Sesión</button>
+            </header>
 
             <section className="controls-section">
                 <form onSubmit={handleSearchSubmit} className="search-form">
@@ -100,7 +178,7 @@ function App() {
             </section>
 
             <section className="notes-display">
-                <h2>Tus Notas</h2>
+                <h2>Tus Notas Inteligentes</h2>
                 <div className="notes-grid">
                     {notes.map((note) => (
                         <div key={note._id} className="note-card">
