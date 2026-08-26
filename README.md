@@ -1,61 +1,91 @@
-# Smart Notes Application
+# Smart Notes Application (AI & Semantic RAG)
 
-This is a full-stack web application designed for intelligent note management. The project combines a modern user interface with advanced Artificial Intelligence capabilities, such as automated content tagging, AI-generated executive summaries using cloud LLMs, and an interactive local semantic search and Q&A engine based on text vectorization.
+Full-stack web application for intelligent note management that integrates Generative AI, local vector embeddings, and Retrieval-Augmented Generation (RAG) for semantic search and interactive Q&A.
+
+---
 
 ## Architecture Overview
 
-The application follows a decoupled client-server architecture:
-* **Frontend:** Built with React and Vite, using modern state management (useState, useEffect) and native asynchronous fetching.
-* **Backend:** Developed using Node.js and Express, implementing a RESTful API with stateless JWT authentication.
-* **Database:** MongoDB Atlas used for cloud persistence of user credentials and vectorized note documents.
-* **AI Engine:** Hybrid implementation using Groq Cloud API (Llama 3.1) for server-side generation features, and Xenova Transformers for local CPU vector embeddings and similarity computations.
+The system follows a decoupled client-server architecture:
+
+* **Frontend:** Built with **React** and **Vite**, using modular state hooks and asynchronous data fetching.
+* **Backend:** RESTful API built on **Node.js** and **Express**, featuring stateless authentication.
+* **Database:** **MongoDB Atlas** for persistence of user credentials and vectorized note documents.
+* **AI Engine:** Hybrid architecture leveraging **Groq Cloud API (Llama 3.1)** for generative tasks and **Xenova Transformers** for local CPU embeddings.
 
 ---
 
 ## Technical Features
 
 ### 1. Authentication & Security
-* **Stateless Sessions:** Implements JSON Web Tokens (JWT) for secure, token-based authentication.
-* **Password Hashing:** Uses bcryptjs with salt generation (10 rounds) to encrypt user passwords before database persistence.
-* **Route Protection:** A custom middleware interceptor (authMiddleware.js) validates tokens in the HTTP authorization headers before allowing access to private resources.
+* **Stateless Sessions:** JWT (JSON Web Tokens) for role and session management.
+* **Password Hashing:** Salted hashing with `bcryptjs` (10 rounds) before persistence.
+* **Route Protection:** Custom middleware interceptor (`authMiddleware.js`) validating authorization headers.
 
-### 2. Artificial Intelligence Generation
-* **Automated Tag Extraction:** When a user creates or updates a note, the content is analyzed by the Groq API (llama-3.1-8b-instant) to extract exactly three relevant keywords formatted as raw JSON.
-* **Executive AI Summaries:** The backend automatically generates a concise one-to-two sentence summary for every note, making it easier to review long texts from the main dashboard.
-* **Graceful Degradation:** The backend includes a fallback mechanism. If the external Groq API key fails or expires, a local text-processing algorithm takes over to generate fallback tags, preventing application downtime.
+### 2. Generative AI Capabilities
+* **Automated Tag Extraction:** Asynchronous analysis of note content via Llama 3.1 to generate contextual JSON tags.
+* **Executive Summaries:** Automated generation of concise overviews for long-form entries.
+* **Graceful Degradation:** Local text-processing fallback mechanism in case of API rate limits or network failures.
 
 ### 3. Semantic Search Engine & RAG
-* **Local Text Embeddings:** The system imports the @xenova/transformers pipeline locally to convert note content into a 384-dimensional dense vector using the Xenova/all-MiniLM-L6-v2 model.
-* **Cosine Similarity Matcher:** Instead of traditional keyword matching, the application computes the Dot Product between normalized vectors to sort results by contextual and semantic relevance.
-* **"Ask Your Notes" (Retrieval-Augmented Generation):** Users can ask conversational questions about their notes. The system fetches the top 3 contextually relevant documents in local CPU, injects them as a strict knowledge boundary into the cloud LLM prompt, and returns a veridical answer free of hallucinations.
+* **Local Embeddings:** Generates 384-dimensional dense vectors on CPU via `Xenova/all-MiniLM-L6-v2`.
+* **Cosine Similarity Matcher:** Dot-product computation over normalized vectors for context-aware sorting.
+* **"Ask Your Notes" (RAG):** Retrieves the top-3 relevant context chunks to augment prompts, delivering grounded responses without hallucinations.
 
 ---
 
-## Installation and Setup
+## Stack Tecnológico
+
+* **Frontend:** React, Vite, HTML5, CSS3, JavaScript (ES6+)
+* **Backend:** Node.js, Express.js, JWT, Bcryptjs
+* **Database:** MongoDB Atlas, Mongoose
+* **AI / ML:** Llama 3.1 (Groq API), Transformers.js, Vector Embeddings
+
+---
+
+## Installation & Setup
 
 ### Prerequisites
-Make sure you have [Node.js](https://nodejs.org/) installed on your machine.
+* **Node.js** (v18+ recommended)
+* **MongoDB Atlas** instance or local URI
+* **Groq API Key**
 
-### Environment Configuration
-Create a .env file inside the backend folder with the following configuration variables:
+### 1. Environment Configuration
 
+Create a `.env` file inside the `backend/` directory:
+
+```env
 PORT=5000
 MONGO_URI=your_mongodb_atlas_connection_string
 OPENAI_API_KEY=your_groq_api_key
 JWT_SECRET=your_fallback_secure_string
+```
 
-## Installation Steps
-### 1. Clone or download the repository.
-### 2. Install the backend dependencies:
+### 2. Install Dependencies
+
+```bash
+# Install backend dependencies
 cd backend
 npm install
 
-### Install the frontend dependencies:
+# Install frontend dependencies
 cd ../frontend
 npm install
+```
 
-## How to run the Application
-Navigate to the backend directory and run the monitor environment:
+### 3. Run the Application
+
+```bash
+# Terminal 1 - Run Backend (from /backend)
 npx nodemon index.js
-Open a second terminal, navigate to the frontend directory, and run the Vite development server:
+
+# Terminal 2 - Run Frontend (from /frontend)
 npm run dev
+```
+
+---
+
+## Contributors
+
+* **Laura Eraso Lorenzo** ([@laueralor](https://github.com/laueralor))
+* **Javier Muela Rubio** [@muelean](https://github.com/muelean)
