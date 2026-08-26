@@ -85,7 +85,7 @@ npm run dev
 
 ---
 
-## Contributors
+## Contributors (ERASMUS)
 
 * **Laura Eraso Lorenzo** ([@laueralor](https://github.com/laueralor))
 * **Javier Muela Rubio** [@muelean](https://github.com/muelean)
