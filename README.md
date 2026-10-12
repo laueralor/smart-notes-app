@@ -30,9 +30,7 @@ The system follows a decoupled client-server architecture:
 ### 3. Semantic Search Engine & RAG
 * **Local Embeddings:** Generates 384-dimensional dense vectors on CPU via `Xenova/all-MiniLM-L6-v2`.
 * **Cosine Similarity Matcher:** Dot-product computation over normalized vectors for context-aware sorting.
-* **"Ask Your Notes" (RAG):** Retrieves the top-3 relevant context chunks to augment prompts, delivering grounded responses without hallucinations.
-
----
+* **"Ask Your Notes" (RAG):** Retrieves the top-3 relevant context chunks to augment prompts. (NOT IMPLEMENTED)
 
 ## Stack Tecnológico
 
